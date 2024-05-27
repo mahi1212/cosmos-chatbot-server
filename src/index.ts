@@ -1,6 +1,8 @@
 import express, { Request, Response } from "express";
 import { connectDatabase } from "./db/connection";
 import morgan from "morgan"
+import cookieParser from "cookie-parser"
+
 import appRouter from "./routes";
 // import OpenAI from "openai";
 const OpenAI = require('openai')
@@ -13,6 +15,7 @@ const port = process.env.PORT || 5000
 // middlewares
 app.use(express.json())
 app.use(cors())
+app.use(cookieParser(process.env.COOKIE_SECRET))
 // remove in production
 app.use(morgan("dev"))
 

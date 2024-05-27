@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         // hide password
-        select: false  
+        // select: false  
     },
     chat: [chatSchema]
 
