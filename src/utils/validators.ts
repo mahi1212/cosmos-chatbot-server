@@ -29,3 +29,7 @@ export const signupValidator = [
     ...loginValidator
 ]
 
+export const chatCompletionValidator = [
+    body("prompt").notEmpty().withMessage("Prompt is required"),
+    body("content").notEmpty().withMessage("Content is required")
+]

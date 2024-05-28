@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema({
         // hide password
         // select: false  
     },
-    chat: [chatSchema]
+    chats: [chatSchema]
 
 })
 
