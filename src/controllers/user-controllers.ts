@@ -67,7 +67,9 @@ export const userSignup = async (req: Request, res: Response, next: NextFunction
 
         return res.status(200).json({
             message: "OK",
-            user: user._id.toString()
+            name: user.name,
+            email: user.email,
+            _id: user._id.toString()
         })
     } catch (error) {
         return res.status(500).json({
@@ -125,8 +127,9 @@ export const userLogin = async (req: Request, res: Response, next: NextFunction)
 
         return res.status(200).json({
             message: "OK",
-            user: existingUser._id.toString(),
-            // token: token
+            name: existingUser.name,
+            email: existingUser.email,
+            _id: existingUser._id.toString()
         })
 
     } catch (error) {

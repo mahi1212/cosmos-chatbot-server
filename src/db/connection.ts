@@ -18,11 +18,11 @@ export const connectDatabase = async () => {
     }
 }
 
-const disconnectFromDatabase = async () => {
-    try {
-        await disconnect();
-    } catch (error) {
-        console.error(error)
-        throw new Error("Cannot connect to MongoDB")
-    }
-}
+// export const disconnectFromDatabase = async () => {
+//     try {
+//         await disconnect();
+//     } catch (error) {
+//         console.error(error)
+//         throw new Error("Cannot connect to MongoDB")
+//     }
+// }
