@@ -14,7 +14,7 @@ export const connectDatabase = async () => {
         await connect(process.env.MONGO_DB_URL as string);
     } catch (error) { 
         console.error(error)
-        throw new Error("Cannot connect to MongoDB")
+        console.log('Check network connection')
     }
 }
 

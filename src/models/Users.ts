@@ -13,24 +13,26 @@ import mongoose from "mongoose";
 //     }
 // })
 
-const userSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: true
-    },
-    email: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    password: {
-        type: String,
-        required: true,
-        // hide password
-        // select: false  
-    },
-    // chats: { type: mongoose.Types.ObjectId, ref: "Chats" },
+const userSchema = new mongoose.Schema(
+    {
+        name: {
+            type: String,
+            required: true
+        },
+        email: {
+            type: String,
+            required: true,
+            unique: true
+        },
+        password: {
+            type: String,
+            required: true,
+            // hide password
+            // select: false  
+        },
 
-})
+    },
+    { timestamps: true }
+)
 
 export default mongoose.model("Users", userSchema)
