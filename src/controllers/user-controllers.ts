@@ -1,8 +1,10 @@
 import { NextFunction, Request, Response } from "express"
-import User from "../models/User"
+import User from "../models/Users"
 import { hash, compare } from "bcrypt"
 import { createToken } from "../utils/token-manager";
 import { COOKIE_NAME } from "../utils/constants";
+import Chats from "../models/Chats";
+import Settings from "../models/Settings";
 
 export const getAllUser = async (req: Request, res: Response, next: NextFunction) => {
     // get all user
@@ -34,9 +36,15 @@ export const userSignup = async (req: Request, res: Response, next: NextFunction
             })
         }
 
+        // create user, chats & settings
         const user = new User({ name, email, password: hashedPassword })
         await user.save()
 
+        // const chats = new Chats({ user_id: user._id, chats: [] })
+        // await chats.save()
+
+        const settings = new Settings({ user_id: user._id, gpt_version: "gpt-3.5-turbo", token_length: 1000 })
+        await settings.save()
         // create token and store cookie
 
         // clear previous cookie
@@ -141,6 +149,40 @@ export const userLogin = async (req: Request, res: Response, next: NextFunction)
 }
 
 
+export const logoutUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const user = await User.findById(res.locals.jwtData.id);
+        console.log(user);
+        if (!user) {
+            return res.status(400).json({
+                message: "User not found"
+            });
+        }
+
+        if (user._id.toString() !== res.locals.jwtData.id) {
+            return res.status(401).json({
+                message: "Permission denied"
+            });
+        }
+
+        res.clearCookie(COOKIE_NAME, {
+            path: "/",
+            domain: process.env.DOMAIN_NAME,
+            httpOnly: true,
+            signed: true
+        });
+
+        return res.status(200).json({
+            message: "Successfully logged out"
+        });
+    } catch (error) {
+        return res.status(500).json({
+            message: "ERROR",
+            reason: error.message
+        });
+    }
+};
+
 export const verifyUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
 
@@ -154,7 +196,7 @@ export const verifyUser = async (req: Request, res: Response, next: NextFunction
 
         console.log(user._id.toString(), res.locals.jwtData.id)
 
-        if(user._id.toString() !== res.locals.jwtData.id) {
+        if (user._id.toString() !== res.locals.jwtData.id) {
             return res.status(401).json({
                 message: "Permission denied",
             })

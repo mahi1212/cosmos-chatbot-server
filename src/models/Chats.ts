@@ -1,15 +1,20 @@
 import mongoose from "mongoose";
 
 const chatSchema = new mongoose.Schema({
-    role: {
-        type: String,
-        enum: ['system', 'user', 'assistant'],
+    user_id: {
+        type: mongoose.Types.ObjectId,
         required: true,
+        ref: 'Users'
     },
-    content: {
+    title: {
         type: String,
-        required: true
+        required: false,
+    },
+    chats: {
+        type: Array,
+        required: true,
+        default: [],
     }
 })
 
-export default chatSchema
+export default mongoose.model("Chats", chatSchema)

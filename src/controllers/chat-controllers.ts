@@ -1,44 +1,46 @@
 import { Request, Response, NextFunction } from 'express';
-import User from '../models/User'; // Adjust the path to your User model
+import User from '../models/Users'; // Adjust the path to your User model
 import { configureOpenAI } from '../config/openai-config';
+import Chats from '../models/Chats';
 
 type ChatCompletionRole = 'system' | 'user' | 'assistant';
 
 interface ChatInterface {
-    role: ChatCompletionRole;
-    content: string;
+    role: ChatCompletionRole
+    content: string | null
 }
 
 export const generateChatCompletion = async (req: Request, res: Response, next: NextFunction) => {
-    const { message } = req.body;
 
     try {
-        const user = await User.findById(res.locals.jwtData.id);
+        const { message, chat_id } = req.body;
+        // console.log(message) //user_id
 
+        const user = await User.findById(res.locals.jwtData.id);
+        // const user = await User.findById(user_id);
         if (!user) {
             return res.status(400).json({
                 message: "User not registered or TOKEN malfunctioned"
-            });
+            })
         }
 
-        // Grab chats of user and map them to the required format
-        const chats: ChatInterface[] = user.chats.map(({ role, content }: { role: string; content: string }) => ({
-            role: role as ChatCompletionRole, // Explicitly cast role to ChatCompletionRole
-            content
-        }));
+        // find the chat of the collection by user_id
+        const chats = await Chats.findOne({ _id: chat_id });
+        // const chats = await Chats.findOne({ user_id: user_id });
+        if (!chats) {
+            return res.status(400).json({
+                message: "User not registered or TOKEN malfunctioned"
+            })
+        }
 
-        // Add the user's new message to the chats
+        // now generate the chat
         const newUserMessage: ChatInterface = { role: 'user', content: message };
-        chats.push(newUserMessage);
+        chats.chats.push(newUserMessage);
 
-        // Create the full chat history including the system message
-        const fullChat: ChatInterface[] = [
-            { role: 'system', content: 'You are a helpful assistant. You talk like a teacher and help people solve problems. Your name is MahiBot.' },
-            ...chats
+        const fullChat: any = [
+            { role: 'system', content: 'You are a pirate. Tell everything with a joke' },
+            ...chats.chats
         ];
-
-        // Add the new user message to the user's chat history
-        user.chats.push(newUserMessage);
 
         const openai = configureOpenAI();
         // Send all chats with the new one to OpenAI
@@ -49,34 +51,80 @@ export const generateChatCompletion = async (req: Request, res: Response, next: 
             frequency_penalty: 0.7,
             temperature: 0.9,
         });
-
         // Get the latest response
         const assistantMessage = completion.choices[0]?.message;
-        if (assistantMessage) {
-            // Update the user's chat history with the assistant's response
-            user.chats.push(assistantMessage);
-            await user.save();
+        chats.chats.push(assistantMessage);
+        await chats.save();
 
-            return res.status(200).json({
-                message: "OK",
-                response: user.chats
-            });
-        } else {
-            console.error("No valid message received from OpenAI.");
-            return res.status(500).json({
-                message: "ERROR",
-                reason: "Failed to receive a valid response from the assistant."
-            });
+        // save title for first time
+        if (chats?.chats?.length == 2) {
+            chats.title = chats.chats[0].content
+            await chats.save()
         }
+
+        return res.status(200).json({
+            message: "OK",
+            response: chats.chats
+        });
+
     } catch (error) {
-        console.error("Error with OpenAI API:", error);
         return res.status(500).json({
             message: "ERROR",
             reason: error.message
-        });
+        })
     }
+
 };
 
+export const getUserChat = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.query;
+        const user = await User.findById(res.locals.jwtData.id);
+        if (!user) {
+            return res.status(400).json({
+                message: "User not registered or TOKEN malfunctioned"
+            })
+        }
+
+        if (user._id.toString() !== res.locals.jwtData.id) {
+            return res.status(401).json({
+                message: "Permission denied",
+            });
+        }
+
+        if (id) {
+            const chats = await Chats.findOne({ _id: id });
+            if (!chats) {
+                return res.status(400).json({
+                    message: "Chat not found"
+                });
+            }
+            return res.status(200).json({
+                message: "OK",
+                chats: chats.chats,
+                title: chats.title,
+                _id: chats._id
+            });
+        } else {
+            const chats = new Chats({ user_id: user._id, chats: [] })
+            await chats.save()
+
+            return res.status(200).json({
+                message: "OK",
+                chats: chats.chats,
+                title: chats.title,
+                _id: chats._id
+            });
+        }
+
+    } catch (error) {
+        console.error("Error:", error);
+        return res.status(500).json({
+            message: "ERROR",
+            reason: error.message,
+        });
+    }
+}
 
 
 export const getAllChats = async (req: Request, res: Response, next: NextFunction) => {
@@ -91,15 +139,25 @@ export const getAllChats = async (req: Request, res: Response, next: NextFunctio
 
         // console.log(user._id.toString(), res.locals.jwtData.id)
 
-        if(user._id.toString() !== res.locals.jwtData.id) {
+        if (user._id.toString() !== res.locals.jwtData.id) {
             return res.status(401).json({
                 message: "Permission denied",
             })
         }
 
+        // const chats = await Chats.find({ user_id: user._id });
+        // find all chats of the collection by user_id
+        const chats = await Chats.find({ user_id: user._id }).select('title _id');
+        // console.log(chats)
+        if (!chats) {
+            return res.status(400).json({
+                message: "User not registered or TOKEN malfunctioned"
+            })
+        }
+
         return res.status(200).json({
             message: "OK",
-            chats: user.chats
+            history: chats
         })
 
     } catch (error) {
@@ -111,33 +169,45 @@ export const getAllChats = async (req: Request, res: Response, next: NextFunctio
 }
 
 
-export const deleteAllChats = async (req: Request, res: Response, next: NextFunction) => {
+export const deleteSingleChat = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const user = await User.findById(res.locals.jwtData.id)
+        const { chat_id } = req.body;
+        // console.log(res.locals.jwtData.id);
 
+        const user = await User.findById(res.locals.jwtData.id);
         if (!user) {
             return res.status(400).json({
-                message: "User not registered or TOKEN malfuncationed"
-            })
+                message: "User not registered or TOKEN malfunctioned"
+            });
         }
 
-        if(user._id.toString() !== res.locals.jwtData.id) {
+        // The `user` is definitely not null here due to the previous check
+        if (user._id.toString() !== res.locals.jwtData.id) {
             return res.status(401).json({
                 message: "Permission denied",
-            })
+            });
         }
 
-        // @ts-ignore
-        user.chats = []
-        await user.save()
+        const chats = await Chats.findOne({ _id: chat_id });
+        if (!chats) {
+            return res.status(400).json({
+                message: "Chat not found"
+            });
+        }
+
+        // await chats.deleteOne({ chat_id: chat_id });
+        // delete the chat
+        // await Chats.findOneAndUpdate({ _id: chat_id }, { chats: [] });
+        await Chats.deleteOne({ _id: chat_id });
         return res.status(200).json({
             message: "OK",
-        })
+        });
 
     } catch (error) {
+        console.error("Error:", error);
         return res.status(500).json({
             message: "ERROR",
-            reason: error.message
-        })
+            reason: error.message,
+        });
     }
 }
