@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import User from '../models/Users'; // Adjust the path to your User model
 import { configureOpenAI } from '../config/openai-config';
 import Chats from '../models/Chats';
+import Settings from '../models/Settings';
 
 type ChatCompletionRole = 'system' | 'user' | 'assistant';
 
@@ -18,12 +19,28 @@ export const generateChatCompletion = async (req: Request, res: Response, next: 
 
         const user = await User.findById(res.locals.jwtData.id);
         // const user = await User.findById(user_id);
+        // console.log(user, 'generateChatCompletion')
         if (!user) {
             return res.status(400).json({
                 message: "User not registered or TOKEN malfunctioned"
             })
         }
+        interface Settings {
+            gpt_version?: 'gpt-3.5-turbo' | 'gpt-4' | 'gpt-4o';
+            system_prompt?: string;
+            temperature?: number;
+            max_tokens?: number;
+            top_p?: number;
+            frequency_penalty?: number;
+            token_usage?: number;
+        }
 
+        const settings: Settings | null = await Settings.findOne({ user_id: user._id });
+        if (!settings) {
+            return res.status(400).json({
+                message: "Settings not found"
+            })
+        }
         // find the chat of the collection by user_id
         const chats = await Chats.findOne({ _id: chat_id });
         // const chats = await Chats.findOne({ user_id: user_id });
@@ -38,14 +55,14 @@ export const generateChatCompletion = async (req: Request, res: Response, next: 
         chats.chats.push(newUserMessage);
 
         const fullChat: any = [
-            { role: 'system', content: 'You are a pirate. Tell everything with a joke' },
+            { role: 'system', content: settings?.system_prompt ? settings?.system_prompt : 'You are a pirate. Tell everything with a joke' },
             ...chats.chats
         ];
 
+
         const openai = configureOpenAI();
-        // Send all chats with the new one to OpenAI
         const completion = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo",
+            model: settings?.gpt_version ? settings?.gpt_version : 'gpt-3.5-turbo',
             messages: fullChat,
             max_tokens: 1000,
             frequency_penalty: 0.7,
@@ -68,6 +85,7 @@ export const generateChatCompletion = async (req: Request, res: Response, next: 
         });
 
     } catch (error) {
+        console.log(error)
         return res.status(500).json({
             message: "ERROR",
             reason: error.message
@@ -80,17 +98,19 @@ export const getUserChat = async (req: Request, res: Response, next: NextFunctio
     try {
         const { id } = req.query;
         const user = await User.findById(res.locals.jwtData.id);
+        // console.log(user, 'getUserChat')
+        // console.log(res.locals.jwtData.id, 'id')
         if (!user) {
             return res.status(400).json({
                 message: "User not registered or TOKEN malfunctioned"
             })
         }
 
-        if (user._id.toString() !== res.locals.jwtData.id) {
-            return res.status(401).json({
-                message: "Permission denied",
-            });
-        }
+        // if (user._id.toString() !== res.locals.jwtData.id.toString()) {
+        //     return res.status(401).json({
+        //         message: "Permission denied",
+        //     });
+        // }
 
         if (id) {
             const chats = await Chats.findOne({ _id: id });
@@ -130,7 +150,7 @@ export const getUserChat = async (req: Request, res: Response, next: NextFunctio
 export const getAllChats = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const user = await User.findById(res.locals.jwtData.id)
-
+        console.log(user)
         if (!user) {
             return res.status(400).json({
                 message: "User not registered or TOKEN malfuncationed"
