@@ -141,6 +141,7 @@ export const userLogin = async (req: Request, res: Response, next: NextFunction)
         })
 
     } catch (error) {
+        console.log(error)
         return res.status(500).json({
             message: "ERROR",
             reason: error.message

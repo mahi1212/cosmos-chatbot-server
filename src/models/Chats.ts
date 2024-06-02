@@ -9,6 +9,7 @@ const chatSchema = new mongoose.Schema({
     title: {
         type: String,
         required: false,
+        default: "No title"
     },
     chats: {
         type: Array,
