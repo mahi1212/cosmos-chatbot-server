@@ -26,6 +26,7 @@ export const generateChatCompletion = async (req: Request, res: Response, next: 
             })
         }
         interface Settings {
+            _id: string;
             gpt_version?: 'gpt-3.5-turbo' | 'gpt-4' | 'gpt-4o';
             system_prompt?: string;
             temperature?: number;
@@ -36,6 +37,7 @@ export const generateChatCompletion = async (req: Request, res: Response, next: 
         }
 
         const settings: Settings | null = await Settings.findOne({ user_id: user._id });
+        console.log(settings)
         if (!settings) {
             return res.status(400).json({
                 message: "Settings not found"
@@ -72,6 +74,19 @@ export const generateChatCompletion = async (req: Request, res: Response, next: 
         const assistantMessage = completion.choices[0]?.message;
         chats.chats.push(assistantMessage);
         await chats.save();
+
+        // console.log(completion.usage)
+        // console.log('completion?.usage?.total_tokens:', completion?.usage?.total_tokens);
+
+        // Update token usage in settings
+        if (settings.token_usage !== undefined) {
+            const tokens = completion?.usage?.total_tokens ?? 0;
+            const tokenUsed = settings.token_usage + tokens;
+            // console.log('Updating settings with token_used:', tokenUsed);
+            // Update the settings
+            await Settings.findByIdAndUpdate(settings._id, { token_usage: tokenUsed }, { new: true });
+            // console.log('Update result:', result);
+        } 
 
         // save title for first time
         if (chats?.chats?.length == 2) {
