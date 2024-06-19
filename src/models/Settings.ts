@@ -17,7 +17,7 @@ const SettingsSchema = new Schema({
     system_prompt: {
         type: String,
         required: false,
-        default: "",
+        default: "You are a helpful chatbot. You help people with their problems.",
     },
     temperature: {
         type: Number,

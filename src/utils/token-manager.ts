@@ -14,13 +14,10 @@ export const createToken = async (id: string, email: string, expiresIn: string) 
 
 export const verifyToken = async (req: Request, res: Response, next: NextFunction) => {
     const token = req.signedCookies[`${COOKIE_NAME}`]
-    console.log(token)
     if (typeof token !== "string" || !token) {
         return res.status(401).json({ message: "Token not found in cookies" })
     }
     token.toString()
-    console.log(token)
-   
     // console.log(token)
     if (token == "") {
         return res.status(401).json({ message: "Token not found in cookies" })

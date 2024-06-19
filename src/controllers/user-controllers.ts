@@ -40,9 +40,6 @@ export const userSignup = async (req: Request, res: Response, next: NextFunction
         const user = new User({ name, email, password: hashedPassword })
         await user.save()
 
-        // const chats = new Chats({ user_id: user._id, chats: [] })
-        // await chats.save()
-
         const settings = new Settings({ user_id: user._id })
         await settings.save()
         // create token and store cookie
