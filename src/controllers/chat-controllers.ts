@@ -3,13 +3,8 @@ import User from '../models/Users'; // Adjust the path to your User model
 import { configureOpenAI } from '../config/openai-config';
 import Chats from '../models/Chats';
 import Settings from '../models/Settings';
+import { IChatInterface, ISettingsInterface } from '../utils/interfaces';
 
-type ChatCompletionRole = 'system' | 'user' | 'assistant';
-
-interface ChatInterface {
-    role: ChatCompletionRole
-    content: string | null
-}
 
 export const generateChatCompletion = async (req: Request, res: Response, next: NextFunction) => {
 
@@ -25,19 +20,9 @@ export const generateChatCompletion = async (req: Request, res: Response, next: 
                 message: "User not registered or TOKEN malfunctioned"
             })
         }
-        interface Settings {
-            _id: string;
-            gpt_version?: 'gpt-3.5-turbo' | 'gpt-4' | 'gpt-4o';
-            system_prompt?: string;
-            temperature?: number;
-            max_tokens?: number;
-            top_p?: number;
-            frequency_penalty?: number;
-            token_usage?: number;
-        }
 
-        const settings: Settings | null = await Settings.findOne({ user_id: user._id });
-        console.log(settings)
+        const settings: ISettingsInterface | null = await Settings.findOne({ user_id: user._id });
+        // console.log(settings)
         if (!settings) {
             return res.status(400).json({
                 message: "Settings not found"
@@ -53,7 +38,7 @@ export const generateChatCompletion = async (req: Request, res: Response, next: 
         }
 
         // now generate the chat
-        const newUserMessage: ChatInterface = { role: 'user', content: message };
+        const newUserMessage: IChatInterface = { role: 'user', content: message };
         chats.chats.push(newUserMessage);
 
         const fullChat: any = [
