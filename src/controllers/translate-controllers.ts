@@ -85,7 +85,7 @@ export const makeTranslation = async (req: Request, res: Response) => {
 
             return res.status(200).json({
                 message: "OK",
-                content: assistantMessage,
+                content: assistantMessage.content,
                 target_language,
                 operation
             })
