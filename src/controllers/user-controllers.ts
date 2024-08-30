@@ -5,6 +5,8 @@ import { createToken } from "../utils/token-manager";
 import { COOKIE_NAME } from "../utils/constants";
 import Chats from "../models/Chats";
 import Settings from "../models/Settings";
+const stripe = require('stripe')('sk_test_51Jwq46FHT166OGAM2bXs8VMYYteGXvXCmFSpwnkX6dDKUChwMHJKKo89bxVHsHBX8dSXHA8rFobHDOgJOJuenTVJ00bQbAtltP');
+
 
 export const getAllUser = async (req: Request, res: Response, next: NextFunction) => {
     // get all user
@@ -38,11 +40,14 @@ export const userSignup = async (req: Request, res: Response, next: NextFunction
 
         // create user, chats & settings
         const user = new User({ name, email, password: hashedPassword })
-        await user.save()
+        await user.save();
+        // console.log('User created with ID:', user._id);
 
-        const settings = new Settings({ user_id: user._id })
+        const settings = new Settings({ user_id: user._id });
         await settings.save()
-        // create token and store cookie
+
+        // Check if settings were saved successfully
+        console.log('Settings saved:', settings);// create token and store cookie
 
         // clear previous cookie
         res.clearCookie(COOKIE_NAME, {
@@ -150,7 +155,7 @@ export const userLogin = async (req: Request, res: Response, next: NextFunction)
 export const logoutUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const user = await User.findById(res.locals.jwtData.id);
-        console.log(user);
+        // console.log(user);
         if (!user) {
             return res.status(400).json({
                 message: "User not found"
@@ -204,7 +209,7 @@ export const verifyUser = async (req: Request, res: Response, next: NextFunction
             message: "OK",
             name: user.name,
             email: user.email,
-            id: user._id.toString()
+            _id: user._id.toString()
         })
 
     } catch (error) {
@@ -269,7 +274,7 @@ export const updateSettings = async (req: Request, res: Response, next: NextFunc
         if (top_p) settings.top_p = top_p
         if (frequency_penalty) settings.frequency_penalty = frequency_penalty
         if (token_usage) settings.token_usage = token_usage
-        
+
 
         await settings.save()
 
@@ -279,6 +284,91 @@ export const updateSettings = async (req: Request, res: Response, next: NextFunc
         })
 
     } catch (error) {
+        return res.status(500).json({
+            message: "ERROR",
+            reason: error.message
+        })
+    }
+}
+
+export const checkTier = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const settings = await Settings.findOne({ user_id: res.locals.jwtData.id })
+        // console.log(settings)
+        if (!settings) {
+            return res.status(400).json({
+                message: "Settings not found"
+            })
+        }
+
+        if (settings.user_id.toString() !== res.locals.jwtData.id) {
+            return res.status(401).json({
+                message: "Permission denied"
+            })
+        }
+
+        if (settings.tier === 'premium') {
+            return res.status(200).json({
+                message: "OK",
+                isPremium: true
+            })
+        }
+
+        return res.status(200).json({
+            message: "OK",
+            isPremium: false
+        })
+
+    } catch (error) {
+        return res.status(500).json({
+            message: "ERROR",
+            reason: error.message
+        })
+    }
+}
+
+export const makePayment = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const settings = await Settings.findOne({ user_id: res.locals.jwtData.id })
+
+        if (!settings) {
+            return res.status(400).json({
+                message: "Settings not found"
+            })
+        }
+
+        if (settings.user_id.toString() !== res.locals.jwtData.id) {
+            return res.status(401).json({
+                message: "Permission denied"
+            })
+        }
+
+        const { session_id } = req.body
+        const session = await stripe.checkout.sessions.retrieve(session_id);
+        // console.log(session)
+
+        // await settings.save()
+        // console.log(session_id)
+        // save customer id, expiry date, tier
+        settings.stripe_customer_id = session.customer
+        settings.tier = 'premium'
+        // settings.expireAt = new Date(session.current_period_end * 1000)
+        const unixTimestamp = session.created
+        // Number of seconds in 30 days (30 days * 24 hours * 60 minutes * 60 seconds)
+        const secondsIn30Days = 30 * 24 * 60 * 60;
+        // Add 30 days to the original timestamp
+        const newTimestamp = unixTimestamp + secondsIn30Days;
+        // console.log("Original Timestamp:", unixTimestamp);
+        // console.log("Timestamp after adding 30 days:", newTimestamp);
+        settings.expireAt = new Date(newTimestamp * 1000);
+        await settings.save()
+
+        return res.status(200).json({
+            message: "OK",
+        })
+
+    } catch (error) {
+        console.log(error)
         return res.status(500).json({
             message: "ERROR",
             reason: error.message

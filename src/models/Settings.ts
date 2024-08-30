@@ -43,7 +43,24 @@ const SettingsSchema = new Schema({
         type: Number,
         required: false,
         default: 0
+    },
+    tier: {
+        type: String,
+        enum: ['free', 'pro', 'premium'],
+        default: 'free',
+        required: false
+    },
+    expireAt: {
+        type: Date,
+        default: Date.now,
+        required: false
+    },
+    stripe_customer_id: {
+        type: String,
+        required: false,
+        default: null
     }
+    
 }, { timestamps: true })
 
 export default mongoose.model("Settings", SettingsSchema)

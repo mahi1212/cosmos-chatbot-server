@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getAllUser, getSettings, logoutUser, updateSettings, userLogin, userSignup, verifyUser } from "../controllers/user-controllers";
+import { checkTier, getAllUser, getSettings, logoutUser, makePayment, updateSettings, userLogin, userSignup, verifyUser } from "../controllers/user-controllers";
 import { loginValidator, signupValidator, validate } from "../utils/validators";
 import { verifyToken } from "../utils/token-manager";
 
@@ -12,4 +12,7 @@ userRoutes.get("/logout", verifyToken, logoutUser)
 userRoutes.get("/auth-status", verifyToken, verifyUser)
 userRoutes.get("/settings", verifyToken, getSettings)
 userRoutes.patch("/settings", verifyToken, updateSettings)
+userRoutes.get("/check-tier", verifyToken, checkTier)
+userRoutes.patch("/payment", verifyToken, makePayment)
+
 export default userRoutes;
