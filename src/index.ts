@@ -14,10 +14,16 @@ const port = process.env.PORT || 5000
 
 // middlewares
 app.use(express.json())
-app.use(cors({ origin: "http://localhost:5173", credentials: true }))
+// app.use(cors({ origin: "http://localhost:5173", credentials: true }))
+app.use(cors({ origin: "*", credentials: true }));
 app.use(cookieParser(process.env.COOKIE_SECRET))
 // remove in production
 app.use(morgan("dev"))
+
+app.use((req, res, next) => {
+    console.log(`Request received: ${req.method} ${req.url}`);
+    next();
+});
 
 app.use("/api/v1", appRouter); // domain/api/v1/...
 
@@ -37,3 +43,6 @@ app.get('/', (req: Request, res: Response) => {
 })
 
 
+app.get('/api/v1/test', (req, res) => {
+    res.send('API is working');
+});
