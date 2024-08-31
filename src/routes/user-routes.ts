@@ -14,6 +14,5 @@ userRoutes.get("/settings", verifyToken, getSettings)
 userRoutes.patch("/settings", verifyToken, updateSettings)
 userRoutes.get("/check-tier", verifyToken, checkTier)
 userRoutes.patch("/payment", verifyToken, makePayment)
-userRoutes.get("/all", getAllUser)
 
 export default userRoutes;
