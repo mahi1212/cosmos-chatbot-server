@@ -18,16 +18,16 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
         return res.status(401).json({ message: "Token not found in cookies" })
     }
     token.toString()
-    // console.log(token)
+    console.log(token)
     if (token == "") {
-        return res.status(401).json({ message: "Token not found in cookies" })
+        return res.status(401).json({ message: "Token not found in cookies 2" })
     }
 
     return new Promise<void>((resolve, reject) => {
         return jwt.verify(token, process.env.JWT_SECRET as string, (err: any, success: any) => {
             if (err) {
                 reject(err)
-                return res.status(401).json({ message: "Unauthorized" })
+                return res.status(401).json({ message: "Unauthorized token" })
             }
             console.log("Token verified successfully")
             resolve()
