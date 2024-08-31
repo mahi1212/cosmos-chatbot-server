@@ -71,7 +71,9 @@ export const userSignup = async (req: Request, res: Response, next: NextFunction
                 domain: process.env.DOMAIN_NAME,
                 expires,
                 httpOnly: true,
-                signed: true
+                signed: true,
+                secure: true, // Required for cookies to be sent over HTTPS
+                sameSite: 'none' // Lowercase 'none' for cross-site cookies
             }
         );
 
@@ -131,7 +133,9 @@ export const userLogin = async (req: Request, res: Response, next: NextFunction)
                 domain: process.env.DOMAIN_NAME,
                 expires,
                 httpOnly: true,
-                signed: true
+                signed: true,
+                secure: true, // Required for cookies to be sent over HTTPS
+                sameSite: 'none' // Lowercase 'none' for cross-site cookies
             }
         );
 
