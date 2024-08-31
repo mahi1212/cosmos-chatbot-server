@@ -29,7 +29,7 @@ const verifyToken = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
         return res.status(401).json({ message: "Token not found in cookies" });
     }
     token.toString();
-    console.log(token);
+    // console.log(token)
     if (token == "") {
         return res.status(401).json({ message: "Token not found in cookies 2" });
     }

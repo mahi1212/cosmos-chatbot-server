@@ -6,7 +6,10 @@ export interface ISettingsInterface {
     max_tokens?: number;
     top_p?: number;
     frequency_penalty?: number;
-    token_usage?: number;
+    token_usage: number;
+    tier: 'free' | 'pro' | 'premium';
+    stripe_customer_id?: string;
+    expireAt: Date;
 }
 
 type ChatCompletionRole = 'system' | 'user' | 'assistant';
