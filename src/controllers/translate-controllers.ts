@@ -54,10 +54,10 @@ export const makeTranslation = async (req: Request, res: Response) => {
             stream: false,
         });
         const assistantMessage = completion.choices[0]?.message;
-
+        console.log(assistantMessage)
         return res.status(200).json({
             message: "OK",
-            content: assistantMessage,
+            content: assistantMessage.content,
             target_language,
             operation
         })
