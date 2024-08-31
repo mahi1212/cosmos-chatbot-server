@@ -71,7 +71,9 @@ const userSignup = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
             domain: process.env.DOMAIN_NAME,
             expires,
             httpOnly: true,
-            signed: true
+            signed: true,
+            secure: true, // Required for cookies to be sent over HTTPS
+            sameSite: 'none' // Lowercase 'none' for cross-site cookies
         });
         return res.status(200).json({
             message: "OK",
@@ -121,7 +123,9 @@ const userLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function
             domain: process.env.DOMAIN_NAME,
             expires,
             httpOnly: true,
-            signed: true
+            signed: true,
+            secure: true, // Required for cookies to be sent over HTTPS
+            sameSite: 'none' // Lowercase 'none' for cross-site cookies
         });
         return res.status(200).json({
             message: "OK",
