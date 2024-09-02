@@ -14,6 +14,8 @@ const cors = require('cors');
 require('dotenv').config();
 const app = (0, express_1.default)();
 const port = process.env.PORT || 5000;
+const helmet = require('helmet');
+app.use(helmet());
 // middlewares
 app.use(express_1.default.json());
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
