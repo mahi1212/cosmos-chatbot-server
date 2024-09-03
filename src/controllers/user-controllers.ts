@@ -53,7 +53,7 @@ export const userSignup = async (req: Request, res: Response, next: NextFunction
         res.clearCookie(COOKIE_NAME, {
             path: "/",
             domain: process.env.DOMAIN_NAME,
-            httpOnly: false,
+            httpOnly: true,
             signed: true,
         })
 
@@ -70,9 +70,9 @@ export const userSignup = async (req: Request, res: Response, next: NextFunction
                 path: "/",
                 domain: process.env.DOMAIN_NAME,
                 expires,
-                httpOnly: false,
+                httpOnly: true,
                 signed: true,
-                secure: false,  // Required for cookies to be sent over HTTPS
+                secure: true,  // Required for cookies to be sent over HTTPS
                 sameSite: 'none' // Lowercase 'none' for cross-site cookies
             }
         );
@@ -115,7 +115,7 @@ export const userLogin = async (req: Request, res: Response, next: NextFunction)
         res.clearCookie(COOKIE_NAME, {
             path: "/",
             domain: process.env.DOMAIN_NAME,
-            httpOnly: false,
+            httpOnly: true,
             signed: true
         })
 
@@ -132,9 +132,9 @@ export const userLogin = async (req: Request, res: Response, next: NextFunction)
                 path: "/",
                 domain: process.env.DOMAIN_NAME,
                 expires,
-                httpOnly: false,
+                httpOnly: true,
                 signed: true,
-                secure: false,  // Required for cookies to be sent over HTTPS
+                secure: true,  // Required for cookies to be sent over HTTPS
                 sameSite: 'none' // Lowercase 'none' for cross-site cookies
             }
         );
@@ -175,7 +175,7 @@ export const logoutUser = async (req: Request, res: Response, next: NextFunction
         res.clearCookie(COOKIE_NAME, {
             path: "/",
             domain: process.env.DOMAIN_NAME,
-            httpOnly: false,
+            httpOnly: true,
             signed: true
         });
 
