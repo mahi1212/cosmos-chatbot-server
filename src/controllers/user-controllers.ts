@@ -53,8 +53,8 @@ export const userSignup = async (req: Request, res: Response, next: NextFunction
         res.clearCookie(COOKIE_NAME, {
             path: "/",
             domain: process.env.DOMAIN_NAME,
-            httpOnly: true,
-            signed: true
+            httpOnly: false,
+            signed: true,
         })
 
         const token = createToken(user._id.toString(), user.email, "7d")
@@ -70,7 +70,7 @@ export const userSignup = async (req: Request, res: Response, next: NextFunction
                 path: "/",
                 domain: process.env.DOMAIN_NAME,
                 expires,
-                httpOnly: true,
+                httpOnly: false,
                 signed: true,
                 secure: false,  // Required for cookies to be sent over HTTPS
                 sameSite: 'none' // Lowercase 'none' for cross-site cookies
@@ -115,7 +115,7 @@ export const userLogin = async (req: Request, res: Response, next: NextFunction)
         res.clearCookie(COOKIE_NAME, {
             path: "/",
             domain: process.env.DOMAIN_NAME,
-            httpOnly: true,
+            httpOnly: false,
             signed: true
         })
 
@@ -132,7 +132,7 @@ export const userLogin = async (req: Request, res: Response, next: NextFunction)
                 path: "/",
                 domain: process.env.DOMAIN_NAME,
                 expires,
-                httpOnly: true,
+                httpOnly: false,
                 signed: true,
                 secure: false,  // Required for cookies to be sent over HTTPS
                 sameSite: 'none' // Lowercase 'none' for cross-site cookies
@@ -175,7 +175,7 @@ export const logoutUser = async (req: Request, res: Response, next: NextFunction
         res.clearCookie(COOKIE_NAME, {
             path: "/",
             domain: process.env.DOMAIN_NAME,
-            httpOnly: true,
+            httpOnly: false,
             signed: true
         });
 
